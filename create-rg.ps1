@@ -6,3 +6,7 @@ param(
 [Parameter(Mandatory = $true)][string]$location,
 [Parameter(Mandatory = $false)][hashtable]$AdditionalTags
 )
+
+$ErrorActionPreference = "Stop"
+
+$resourceGroupName = "rg-$App-$Environment-$Region"
