@@ -10,3 +10,10 @@ param(
 $ErrorActionPreference = "Stop"
 
 $resourceGroupName = "rg-$App-$Environment-$Region"
+
+$tags = @{
+    environment = $Environment
+    app         = $App
+    region      = $Region
+    owner       = "cloud-org-infra"
+}
