@@ -1,5 +1,5 @@
 param(
-    [string]$Name
+    [string]$Name = "Lucian"
 )
 
 "Hello $Name"
