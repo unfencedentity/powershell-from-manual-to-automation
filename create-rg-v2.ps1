@@ -7,3 +7,4 @@ param(
 
 $resourceGroupName = "rg-$App-$Environment-$Region"
 
+$resourceGroupName
