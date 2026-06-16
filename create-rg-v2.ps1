@@ -8,3 +8,10 @@ param(
 $resourceGroupName = "rg-$App-$Environment-$Region"
 
 $resourceGroupName
+
+$tags = @{
+    environment = $Environment
+    app         = $App
+    region      = $Region
+    owner       = "cloud-org-infra"
+}
