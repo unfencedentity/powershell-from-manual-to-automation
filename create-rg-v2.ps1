@@ -15,3 +15,5 @@ $tags = @{
     region      = $Region
     owner       = "cloud-org-infra"
 }
+
+$tags
