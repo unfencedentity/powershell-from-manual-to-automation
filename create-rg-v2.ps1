@@ -20,3 +20,11 @@ $tags
 
 $tags["environment"]
 $tags["owner"]
+
+$Servers = @(
+    "web01"
+    "web02"
+    "web03"
+)
+
+$Servers
