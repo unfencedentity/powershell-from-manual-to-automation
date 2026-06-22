@@ -35,3 +35,9 @@ $Servers[2]
 foreach ($Server in $Servers) {
     "Connecting to $Server"
 }
+
+foreach ($Server in $Servers) {
+    "Connecting to $Server"
+}
+
+$Servers.Count
