@@ -17,3 +17,5 @@ $tags = @{
 }
 
 $tags
+
+$tags["environment"]
