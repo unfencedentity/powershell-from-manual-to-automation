@@ -33,5 +33,5 @@ $Servers[1]
 $Servers[2]
 
 foreach ($Server in $Servers) {
-    $Server
+    "Connecting to $Server"
 }
