@@ -28,3 +28,6 @@ $Servers = @(
 )
 
 $Servers
+$Servers[0]
+$Servers[1]
+$Servers[2]
