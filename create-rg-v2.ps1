@@ -19,3 +19,4 @@ $tags = @{
 $tags
 
 $tags["environment"]
+$tags["owner"]
