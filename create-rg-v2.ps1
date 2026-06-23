@@ -42,4 +42,4 @@ foreach ($Server in $Servers) {
 
 $Servers.Count
 
-$Servers.GetType()
+$Servers.GetType().Name
