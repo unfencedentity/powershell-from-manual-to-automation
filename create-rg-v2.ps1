@@ -43,3 +43,7 @@ foreach ($Server in $Servers) {
 $Servers.Count
 
 $Servers.GetType().Name
+
+Write-Host "Resource group name:"
+Write-Host $ResourceGroupName
+Write-Host "Location: $Location"
