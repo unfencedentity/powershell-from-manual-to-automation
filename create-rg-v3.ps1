@@ -8,3 +8,9 @@ param(
 #Optional: allows extending the default tag set
 [Paramater(Mandatory = $false)][hastable]$AdditionalTags
 )
+
+
+$ErrorActionPreference = "Stop"
+
+#Naming convention for the resource group
+$resourceGroupName = "rg-$App-$Environment-$Region"
