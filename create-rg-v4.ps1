@@ -25,7 +25,7 @@ $tags = @{
 # Merge any additional tags into the default tag set
 if ($AdditionalTags) {
    foreach ($key in $AdditionalTags.Keys) {
-       $tags[key] = $AdditonalTags[$key]
+       $tags[$key] = $AdditonalTags[$key]
    }
 }
 
