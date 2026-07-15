@@ -1,11 +1,11 @@
-[CmdletBinding(SupportsShouldprocess = $True)]
+[CmdletBinding(SupportsShouldProcess = $rue)]
 param(
    [Parameter(Mandatory = $true)][string]$Environment,
    [Parameter(Mandatory = $true)][string]$App,
    [Parameter(Mandatory = $true)][string]$Region,
    [Parameter(Mandatory = $true)][string]$Location,
 
-# Optional: Allows extending the default tag set
+# Optional: allows extending the default tag set
    [Parameter(Mandatory = $false)[hashtable]$AdditionalTags
 )
 
