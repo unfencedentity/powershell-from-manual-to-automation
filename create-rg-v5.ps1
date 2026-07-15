@@ -1,4 +1,4 @@
-[CmdletBinding(SupportsShouldProcess = $rue)]
+[CmdletBinding(SupportsShouldProcess = $true)]
 param(
    [Parameter(Mandatory = $true)][string]$Environment,
    [Parameter(Mandatory = $true)][string]$App,
