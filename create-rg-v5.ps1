@@ -6,7 +6,7 @@ param(
    [Parameter(Mandatory = $true)][string]$Location,
 
 # Optional: allows extending the default tag set
-   [Parameter(Mandatory = $false)[hashtable]$AdditionalTags
+   [Parameter(Mandatory = $false)][hashtable]$AdditionalTags
 )
 
 $ErrorActionPreference = 'Stop'
