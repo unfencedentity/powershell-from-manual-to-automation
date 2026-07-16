@@ -28,3 +28,6 @@ if ($AdditionalTags) {
          $tags[$key] = $AdditionalTags[$key]
     }
 }
+
+# Check if the resource group already exists
+$existing = Get-AzResourceGroup -Name $resourceGroupName -ErrorAction SilentlyContinue
