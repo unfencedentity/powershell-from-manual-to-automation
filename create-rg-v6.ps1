@@ -1,0 +1,30 @@
+[CmdletBinding(SupportsShouldProcess = $true)]
+param(
+   [Parameter(Mandatory = $true)][string]$Environment,
+   [Parameter(Mandatory = $true)][string]$App,
+   [Parameter(Mandatory = $true)][string]$Region,
+   [Parameter(Mandatory = $true)][string]$Location
+
+# Optional: allows extending the default tag set
+   [Parameter(Mandatory = $true)][string]$AdditionalTags
+)
+
+$ErrorActionPreference = 'Stop'
+
+# Naming convention for the resource group
+$ResourceGroupName = "rg-$App-$Environment-$Region"
+
+#Default tagging
+$tags = @{
+   environment = $Environment
+   app         = $App
+   region      = $Region
+   owner       = "cloud-org-infra"
+}
+
+# Merge any additional tags into the default tag set
+if ($AdditionalTags) {
+   foreach ($key in $AdditionalTags.Keys) {
+         $tags[$key] = $AdditionalTags[$key]
+    }
+}
