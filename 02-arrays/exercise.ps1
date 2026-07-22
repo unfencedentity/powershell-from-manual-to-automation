@@ -13,3 +13,14 @@ Write-Host ""
 foreach ($server in $servers) {
     Write-Host "Server: $server"
 }
+
+# Generate an array dynamically
+
+$generatedServers = foreach ($i in 1..1000) {
+    "server$i"
+}
+
+Write-Host ""
+Write-Host "Generated servers: $($generatedServers.Count)"
+Write-Host "First generated server: $($generatedServers[0])"
+Write-Host "Last generated server: $($generatedServers[-1])"
