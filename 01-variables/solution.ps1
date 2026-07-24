@@ -1,22 +1,33 @@
-# ==========================================
-# Solution - Exercise 1
-# Variables
-# ==========================================
+<#
+Chapter 01 - Variables
 
-# Store the resource type
-$resource = "vm"
+Solutions for the exercises in exercise.ps1.
+#>
 
-# Store the application name
-$application = "cloud-org"
 
-# Store the deployment environment
+# Exercise 1
+
+$environment = "dev"
+$application = "core"
+$region = "weu"
+
+
+# Exercise 2
+
+$resourceGroupName = "rg-$application-$environment-$region"
+
+$resourceGroupName
+
+
+# Exercise 3
+
+"Deploying $application to $environment in $region"
+
+
+# Exercise 4
+
 $environment = "prod"
 
-# Store the Azure region
-$region = "neu"
+$resourceGroupName = "rg-$application-$environment-$region"
 
-# Build the VM name dynamically
-$vmName = "$resource-$application-$environment-$region"
-
-# Display the result
-Write-Host "VM Name: $vmName"
+$resourceGroupName
