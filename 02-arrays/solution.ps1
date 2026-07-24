@@ -1,40 +1,37 @@
-# ==========================================
-# Solution - Exercise 2
-# Arrays
-# ==========================================
+<#
+Chapter 02 - Arrays
 
-# Create an array of server names
-$servers = @(
-    "web-01"
-    "web-02"
-    "db-01"
-    "jump-01"
-)
+Solutions for the exercises in exercise.ps1.
+#>
 
-# Display the total number of servers
-Write-Host "Total servers: $($servers.Count)"
 
-# Display the first server
-Write-Host "First server: $($servers[0])"
+# Exercise 1
 
-# Display the last server
-Write-Host "Last server: $($servers[-1])"
+$environments = "dev", "test", "prod"
 
-Write-Host ""
 
-# Iterate through every server in the array
-foreach ($server in $servers) {
-    Write-Host "Server: $server"
+# Exercise 2
+
+$environments[0]
+$environments[-1]
+
+
+# Exercise 3
+
+$environments.Count
+
+
+# Exercise 4
+
+foreach ($environment in $environments) {
+    "Environment: $environment"
 }
 
-Write-Host ""
 
-# Generate an array dynamically
-$generatedServers = foreach ($i in 1..1000) {
-    "server$i"
+# Exercise 5
+
+$resourceGroupNames = foreach ($environment in $environments) {
+    "rg-core-$environment-weu"
 }
 
-# Display information about the generated array
-Write-Host "Generated servers: $($generatedServers.Count)"
-Write-Host "First generated server: $($generatedServers[0])"
-Write-Host "Last generated server: $($generatedServers[-1])"
+$resourceGroupNames
