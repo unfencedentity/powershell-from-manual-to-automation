@@ -1,26 +1,44 @@
-$servers = @(
-    "web-01"
-    "web-02"
-    "db-01"
-    "jump-01"
-)
+<#
+Chapter 02 - Arrays
 
-Write-Host "Total servers: $($servers.Count)"
-Write-Host "First server: $($servers[0])"
-Write-Host "Last server: $($servers[-1])"
-Write-Host ""
+Complete each exercise using PowerShell arrays and loops.
+#>
 
-foreach ($server in $servers) {
-    Write-Host "Server: $server"
-}
 
-# Generate an array dynamically
+# Exercise 1
+# Create an array containing:
+#
+# dev, test, prod
 
-$generatedServers = foreach ($i in 1..1000) {
-    "server$i"
-}
+# TODO: Create the array here.
 
-Write-Host ""
-Write-Host "Generated servers: $($generatedServers.Count)"
-Write-Host "First generated server: $($generatedServers[0])"
-Write-Host "Last generated server: $($generatedServers[-1])"
+
+# Exercise 2
+# Return the first and last elements of the array.
+
+# TODO: Access the elements by index.
+
+
+# Exercise 3
+# Return the number of elements in the array.
+
+# TODO: Use the appropriate array property.
+
+
+# Exercise 4
+# Process every environment using foreach.
+# Produce one line using this format:
+#
+# Environment: <environment>
+
+# TODO: Write the foreach loop here.
+
+
+# Exercise 5
+# Dynamically build one Azure resource group name per environment:
+#
+# rg-core-dev-weu
+# rg-core-test-weu
+# rg-core-prod-weu
+
+# TODO: Generate the resource names here.
