@@ -1,74 +1,55 @@
-# ==========================================
-# Solution - Exercise 3
-# Objects
-# ==========================================
+<#
+Chapter 03 - Objects
 
-# Create a string object
-$name = "Lucian"
+Solutions for the exercises in exercise.ps1.
+#>
 
-# Inspect the object type
-$name.GetType()
 
-# Display the object's members
+$name = "  Lucian  "
+$resourceName = "vm-core-prod-weu"
+
+
+# Exercise 1
+
+$name.GetType().FullName
+
+
+# Exercise 2
+
 $name | Get-Member
 
-Write-Host ""
 
-# Properties
-Write-Host "Length: $($name.Length)"
+# Exercise 3
 
-Write-Host ""
-
-# Methods
+$name.Length
+$name.Trim()
 $name.ToUpper()
-$name.ToLower()
-$name.Replace("a", "X")
-$name.Contains("ci")
-$name.StartsWith("Lu")
-$name.EndsWith("an")
-$name.Substring(2)
-$name.IndexOf("a")
 
-Write-Host ""
 
-# Create an integer object
-$number = 42
+# Exercise 4
 
-$number.GetType()
+$resourceName.Contains("prod")
 
-$number | Get-Member
 
-Write-Host ""
+# Exercise 5
 
-# Create an array object
-$servers = @(
-    "web-01"
-    "web-02"
-)
+$resourceName.Replace("prod", "dev")
 
-$servers.GetType()
 
-Get-Member -InputObject $servers
+# Exercise 6
 
-Write-Host ""
+$parts = $resourceName.Split("-")
 
-# Inspect an element inside the array
-$servers[0].GetType()
+$parts
 
-$servers[0] | Get-Member
+"Resource type: $($parts[0])"
+"Environment: $($parts[2])"
 
-Write-Host ""
 
-# Cmdlets also return objects
-Get-Date
+# Exercise 7
 
-(Get-Date).GetType()
+$currentDate = Get-Date
 
-Get-Date | Get-Member
-
-Write-Host ""
-
-# Access properties from the returned object
-(Get-Date).Year
-(Get-Date).Month
-(Get-Date).Day
+"Year: $($currentDate.Year)"
+"Month: $($currentDate.Month)"
+"Day: $($currentDate.Day)"
