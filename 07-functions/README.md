@@ -380,6 +380,89 @@ rg-security
 
 The `process` block runs once for every incoming pipeline value.
 
+## Pipeline Input by Property Name
+
+`ValueFromPipelineByPropertyName` binds a property from each incoming object to a parameter with a matching name.
+
+```powershell
+function Get-ServiceStatus {
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [Alias("ServiceName")]
+        [string]$Name
+    )
+
+    process {
+        Get-Service -Name $Name |
+            Select-Object Name, DisplayName, Status
+    }
+}
+```
+
+An object with a matching `Name` property can bind directly:
+
+```powershell
+[PSCustomObject]@{
+    Name = "Spooler"
+} | Get-ServiceStatus
+```
+
+The alias also permits a property named `ServiceName` to bind to the `Name` parameter:
+
+```powershell
+[PSCustomObject]@{
+    ServiceName = "Spooler"
+} | Get-ServiceStatus
+```
+
+The distinction is:
+
+```text
+ValueFromPipeline
+→ bind the complete incoming object
+
+ValueFromPipelineByPropertyName
+→ bind a matching property value from the incoming object
+```
+
+## Begin, Process, and End
+
+An advanced pipeline function can separate one-time initialization, per-object work, and one-time finalization.
+
+```powershell
+function Measure-ResourceName {
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipeline = $true)]
+        [string]$Name
+    )
+
+    begin {
+        $processedCount = 0
+    }
+
+    process {
+        $processedCount++
+        $Name
+    }
+
+    end {
+        Write-Verbose "Processed $processedCount resource names."
+    }
+}
+```
+
+Lifecycle mental model:
+
+```text
+begin   → once before pipeline processing
+process → once for every incoming object
+end     → once after pipeline processing
+```
+
+Use these blocks only when the requirement needs initialization, per-object processing, or finalization. A simple function without pipeline input does not need them automatically.
+
 ## Advanced Functions
 
 This line enables advanced function behavior:
@@ -920,9 +1003,11 @@ The exercise file includes practice for:
 3. returning a structured object;
 4. wrapping a service-report pipeline;
 5. building a process report;
-6. accepting pipeline input;
+6. accepting pipeline input by value;
 7. separating verbose messages from output;
-8. safely simulating a change with `-WhatIf`.
+8. accepting pipeline input by property name and alias;
+9. using `begin`, `process`, and `end` lifecycle blocks;
+10. safely simulating a change with `-WhatIf`.
 
 ## Key Takeaway
 

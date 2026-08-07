@@ -4,8 +4,8 @@
 
 .DESCRIPTION
     Demonstrates function definition, invocation, parameters,
-    structured output, pipeline input, verbose output,
-    and safe change simulation.
+    structured output, pipeline binding, lifecycle blocks,
+    verbose output, and safe change simulation.
 #>
 
 # Exercise 1: Define and invoke a function
@@ -146,7 +146,73 @@ $deploymentStatus
 $deploymentStatus.Count
 
 
-# Exercise 8: Safely simulate a change
+# Exercise 8: Accept pipeline input by property name
+
+function Get-ServiceStatus {
+    [CmdletBinding()]
+    param(
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipelineByPropertyName = $true
+        )]
+        [Alias("ServiceName")]
+        [string]$Name
+    )
+
+    process {
+        Get-Service -Name $Name |
+            Select-Object Name, DisplayName, Status
+    }
+}
+
+[PSCustomObject]@{
+    Name = "Spooler"
+} | Get-ServiceStatus
+
+[PSCustomObject]@{
+    ServiceName = "Spooler"
+} | Get-ServiceStatus
+
+
+# Exercise 9: Use begin, process, and end
+
+function ConvertTo-NormalizedResourceName {
+    [CmdletBinding()]
+    param(
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipeline = $true
+        )]
+        [string]$Name
+    )
+
+    begin {
+        $processedCount = 0
+        Write-Verbose "Starting normalization."
+    }
+
+    process {
+        $processedCount++
+        $normalizedName = $Name.Trim().ToLowerInvariant()
+
+        [PSCustomObject]@{
+            OriginalName   = $Name
+            NormalizedName = $normalizedName
+        }
+    }
+
+    end {
+        Write-Verbose "Processed $processedCount resource names."
+    }
+}
+
+$normalizedNames = " Core-API ", " NETWORK-HUB ", "Data-Store" |
+    ConvertTo-NormalizedResourceName -Verbose
+
+$normalizedNames
+
+
+# Exercise 10: Safely simulate a change
 
 function Set-DeploymentState {
     [CmdletBinding(SupportsShouldProcess = $true)]

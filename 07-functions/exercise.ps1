@@ -104,7 +104,46 @@
 # TODO: Write your function here.
 
 
-# Exercise 8: Safely simulate a change
+# Exercise 8: Accept pipeline input by property name
+# Create an advanced function named Get-ServiceStatus.
+# It should accept a string parameter named Name.
+# The parameter should:
+# - be mandatory;
+# - accept pipeline input by property name;
+# - use ServiceName as an alias.
+#
+# In the process block:
+# - get the Windows service identified by Name;
+# - return Name, DisplayName, and Status.
+#
+# Test the function with an object that has a Name property.
+# Test it again with an object that has a ServiceName property.
+
+# TODO: Write your function here.
+
+
+# Exercise 9: Use begin, process, and end
+# Create an advanced function named ConvertTo-NormalizedResourceName.
+# It should accept a mandatory string parameter named Name from the pipeline.
+#
+# The begin block should:
+# - initialize a processed counter to 0;
+# - write a verbose starting message.
+#
+# The process block should:
+# - increment the counter;
+# - remove surrounding spaces from Name;
+# - convert Name to lowercase;
+# - return a PSCustomObject with OriginalName and NormalizedName.
+#
+# The end block should write a verbose message containing the processed count.
+#
+# Test the function with three resource names and -Verbose.
+
+# TODO: Write your function here.
+
+
+# Exercise 10: Safely simulate a change
 # Create an advanced function named Set-DeploymentState.
 # Enable SupportsShouldProcess.
 #
