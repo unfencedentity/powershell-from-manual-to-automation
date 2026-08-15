@@ -143,12 +143,11 @@ New-ResourceName `
 # Exercise 7: Require mandatory input
 
 function Get-DeploymentTarget {
-    [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [string]$Application,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [string]$Environment
     )
 
@@ -193,20 +192,19 @@ $environmentReport.Count
 # Exercise 9: Validate a deployment request
 
 function New-DeploymentRequest {
-    [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrWhiteSpace()]
         [string]$Application,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [ValidateSet("dev", "test", "prod")]
         [string]$Environment,
 
         [ValidateRange(1, 10)]
         [int]$Instance = 1,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [ValidatePattern("^rg-[a-z0-9-]+$")]
         [string]$ResourceGroupName
     )
@@ -319,11 +317,10 @@ Get-Help Get-Service -Examples
 # Exercise 14: Reinforce pipeline parameter binding
 
 function Add-ResourceGroupPrefix {
-    [CmdletBinding()]
     param(
         [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true
+            Mandatory,
+            ValueFromPipeline
         )]
         [string]$ResourceGroup
     )
@@ -337,11 +334,10 @@ function Add-ResourceGroupPrefix {
     Add-ResourceGroupPrefix
 
 function Resolve-ServiceName {
-    [CmdletBinding()]
     param(
         [Parameter(
-            Mandatory = $true,
-            ValueFromPipelineByPropertyName = $true
+            Mandatory,
+            ValueFromPipelineByPropertyName
         )]
         [Alias("ServiceName")]
         [string]$Name
@@ -366,21 +362,20 @@ function Resolve-ServiceName {
 # Exercise 15: Design an enterprise automation interface
 
 function New-AzureAutomationContext {
-    [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrWhiteSpace()]
         [string]$TenantId,
 
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrWhiteSpace()]
         [string]$SubscriptionId,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [ValidateSet("dev", "test", "prod")]
         [string]$Environment,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [ValidatePattern("^rg-[a-z0-9-]+$")]
         [string]$ResourceGroupName,
 
@@ -416,3 +411,80 @@ $azureContext.GeneratedAt.GetType().FullName
 # This function receives and returns targeting context only. It does not
 # perform authentication, interactive login, or secret handling. A GitHub
 # Actions workflow should continue using OIDC and Azure RBAC.
+
+
+# Exercise 16: Build a cumulative service inventory function
+
+function Get-ServiceInventory {
+    param(
+        [Parameter(
+            ValueFromPipeline,
+            ValueFromPipelineByPropertyName
+        )]
+        [Alias("ServiceName")]
+        [string[]]$Name = "*",
+
+        [ValidateSet("All", "Running", "Stopped")]
+        [string]$Status = "All",
+
+        [switch]$Detailed
+    )
+
+    process {
+        $services = Get-Service -Name $Name
+
+        if ($Status -eq "All") {
+            $result = $services
+        }
+        else {
+            $result = $services |
+                Where-Object Status -eq $Status
+        }
+
+        if ($Detailed) {
+            $result |
+                Select-Object `
+                    Status,
+                    Name,
+                    DisplayName,
+                    StartType,
+                    CanStop,
+                    ServiceType
+        }
+        else {
+            $result
+        }
+    }
+}
+
+Get-ServiceInventory -Name "WinRM", "Winmgmt"
+
+Get-ServiceInventory `
+    -Name "WinRM", "Winmgmt" `
+    -Status "Running"
+
+Get-ServiceInventory `
+    -Name "WinRM", "Winmgmt" `
+    -Status "Stopped"
+
+Get-ServiceInventory `
+    -Name "WinRM", "Winmgmt" `
+    -Detailed
+
+"WinRM", "Winmgmt" |
+    Get-ServiceInventory -Status "Running"
+
+$serviceTargets = @(
+    [PSCustomObject]@{
+        ServiceName = "WinRM"
+    }
+    [PSCustomObject]@{
+        ServiceName = "Winmgmt"
+    }
+)
+
+$serviceTargets | Get-ServiceInventory
+
+# Expected validation error; uncomment to observe the error.
+
+# Get-ServiceInventory -Name "WinRM" -Status "Paused"
