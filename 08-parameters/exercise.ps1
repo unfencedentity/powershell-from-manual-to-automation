@@ -265,3 +265,32 @@
 # Capture the result and verify its type, properties, and GeneratedAt type.
 
 # TODO: Design, implement, invoke, capture, and verify the function here.
+
+
+# Exercise 16: Build a cumulative service inventory function
+# Create a read-only function named Get-ServiceInventory.
+# It should accept:
+# - Name: optional string array with default "*";
+# - Name by value from the pipeline;
+# - Name by property name from the pipeline;
+# - ServiceName as an alias for Name;
+# - Status: All, Running, or Stopped, with default All;
+# - Detailed: optional switch.
+#
+# In process:
+# - retrieve services matching Name;
+# - return every match when Status is All;
+# - otherwise return only services matching Status;
+# - normally return the standard service objects;
+# - with Detailed, select Status, Name, DisplayName, StartType, CanStop,
+#   and ServiceType.
+#
+# Test:
+# - several names supplied directly;
+# - Running and Stopped filters;
+# - an invalid Status;
+# - Detailed output;
+# - pipeline input by value;
+# - pipeline input using a ServiceName property.
+
+# TODO: Write the function and representative tests here.
