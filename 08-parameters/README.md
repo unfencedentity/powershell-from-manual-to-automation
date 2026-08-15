@@ -434,7 +434,7 @@ Use the `Parameter` attribute when the caller must supply a value:
 
 ```powershell
 param(
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory)]
     [string]$Name
 )
 ```
@@ -442,10 +442,10 @@ param(
 Mental model:
 
 ```text
-param()                         → parameter list
-[Parameter(Mandatory = $true)] → binding behavior
-[string]                        → type
-$Name                           → parameter variable
+param()                 → parameter list
+[Parameter(Mandatory)] → binding behavior
+[string]                → type
+$Name                   → parameter variable
 ```
 
 If a mandatory argument is missing, an interactive session may prompt for it. Non-interactive automation should always supply mandatory values explicitly.
@@ -456,8 +456,8 @@ If a mandatory argument is missing, an interactive session may prompt for it. No
 
 ```powershell
 [Parameter(
-    Mandatory = $true,
-    ValueFromPipeline = $true
+    Mandatory,
+    ValueFromPipeline
 )]
 ```
 
@@ -468,6 +468,22 @@ It is separate from the type declaration:
 [string]      → type metadata
 $Name         → value storage
 ```
+
+Boolean attribute properties such as `Mandatory`, `ValueFromPipeline`, and
+`SupportsShouldProcess` are true when written without an assigned value:
+
+```powershell
+[Parameter(Mandatory, ValueFromPipeline)]
+```
+
+This concise form is supported in PowerShell 3.0 and later. Use an explicit
+value when setting a property to false or when a Boolean value comes from a
+variable.
+
+Using `[Parameter()]` makes the function advanced. An additional empty
+`[CmdletBinding()]` is therefore unnecessary. Use `[CmdletBinding()]` when the
+function needs function-level configuration such as `SupportsShouldProcess`,
+`DefaultParameterSetName`, or `PositionalBinding`.
 
 ## Single values versus collections
 
@@ -530,12 +546,12 @@ Require text to match a regular expression:
 [string]$ResourceGroupName
 ```
 
-### ValidateNotNullOrEmpty
+### ValidateNotNullOrWhiteSpace
 
-Reject `$null` and empty strings:
+Reject `$null`, empty strings, and strings containing only whitespace:
 
 ```powershell
-[ValidateNotNullOrEmpty()]
+[ValidateNotNullOrWhiteSpace()]
 [string]$Application
 ```
 
@@ -675,7 +691,7 @@ This chapter focuses on recognizing parameter sets conceptually. Advanced parame
 
 ```powershell
 param(
-    [Parameter(ValueFromPipeline = $true)]
+    [Parameter(ValueFromPipeline)]
     [string]$ResourceGroup
 )
 ```
@@ -686,7 +702,7 @@ param(
 
 ```powershell
 param(
-    [Parameter(ValueFromPipelineByPropertyName = $true)]
+    [Parameter(ValueFromPipelineByPropertyName)]
     [Alias("ServiceName")]
     [string]$Name
 )
@@ -711,10 +727,10 @@ Parameters make context explicit for non-interactive automation:
 
 ```powershell
 param(
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory)]
     [string]$TenantId,
 
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory)]
     [string]$SubscriptionId,
 
     [ValidateSet("dev", "test", "prod")]
@@ -909,7 +925,9 @@ The practical files contain exercises for:
 12. named parameter splatting;
 13. command discovery and syntax interpretation;
 14. pipeline binding by value and property name;
-15. cumulative enterprise interface design.
+15. cumulative enterprise interface design;
+16. cumulative Windows service inventory with validation, switches, and both
+    pipeline binding modes.
 
 Files:
 
