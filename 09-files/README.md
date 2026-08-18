@@ -1,295 +1,621 @@
 Chapter 09 — Files
 
-Status: Not started. This scaffold will be expanded after Chapter 08 — Parameters is completed.
+Objective
 
-Purpose
+Build safe, predictable PowerShell workflows for discovering, reading,
+creating, updating, moving, copying, renaming, and removing files and
+directories.
 
-Files are a common boundary between automation and external systems.
+The chapter focuses on a reusable enterprise pattern:
 
-PowerShell scripts use files to read configuration, inspect logs, create reports, preserve results, exchange data with other tools, and manage repeatable operational workflows.
+Build path -> validate target -> retrieve or read -> change -> verify
 
-This chapter will focus on working with files as structured PowerShell and .NET objects rather than treating every path as unverified text.
+All destructive practice must use an exact target inside a dedicated temporary
+directory.
 
-Core mental model
+1. A path is not the item at that path
 
-Path
-  → verify
-  → retrieve file or directory objects
-  → inspect properties
-  → read or modify content
-  → return a verifiable result
+A path is text that identifies a location:
 
-For state-changing operations:
+$filePath = "C:\Reports\servers.txt"
+$filePath.GetType().FullName
 
-identify exact target
-  → verify target
-  → preview the operation
-  → perform the change
-  → verify the result
+System.String
 
-Learning objectives
+The file-system item is an object returned by a command such as Get-Item:
 
-By the end of this chapter, I should be able to:
+$file = Get-Item -Path $filePath
+$file.GetType().FullName
 
-distinguish a path from the object found at that path;
+System.IO.FileInfo
 
-distinguish files from directories;
+The distinction matters because the properties depend on the object type:
 
-work with absolute and relative paths;
+$filePath.Length is the number of characters in the path string.
 
-build paths safely with Join-Path;
+$file.Length is the file size in bytes.
 
-use $PSScriptRoot for script-relative paths;
+$file.FullName is the absolute path represented by the object.
 
-verify paths with Test-Path;
+Mental model:
 
-retrieve items with Get-Item and Get-ChildItem;
+Path string -> Get-Item -> FileInfo or DirectoryInfo object
+Path string -> Get-Content -> content stored inside a file
 
-inspect FileInfo and DirectoryInfo objects;
+2. Current location and path forms
 
-read text content with Get-Content;
+Get-Location returns the current PowerShell location:
 
-create files and directories with New-Item;
+Get-Location
 
-replace or append text intentionally;
+An absolute path identifies a location independently of the current location:
 
-copy, move, rename, and remove items safely;
+C:\Automation\servers.txt
 
-understand basic text encoding choices;
+A relative path is interpreted from the current location:
 
-return structured file information for pipelines and reports;
+.\servers.txt
 
-use discovery tools instead of guessing command syntax.
+Use Set-Location when changing the current location is intentional:
 
-Planned topics
+Set-Location -Path $labPath
 
-Paths
+For automation, prefer explicit paths over assumptions about where the caller
+started PowerShell.
 
-Planned path concepts include:
+3. Building paths with Join-Path and PSScriptRoot
 
-absolute paths;
+Use Join-Path instead of manually concatenating path separators:
 
-relative paths;
+$serverPath = Join-Path -Path $labPath -ChildPath "servers.txt"
 
-the current location;
+Join-Path produces a path string. It does not create the file or directory.
 
-parent and child paths;
+$PSScriptRoot contains the directory of the currently executing script:
 
-path separators;
+$configPath = Join-Path -Path $PSScriptRoot -ChildPath "config.txt"
 
-$PSScriptRoot;
+This makes a script independent of the caller's current location. At an
+interactive prompt, $PSScriptRoot is normally empty because no script file is
+executing.
 
-Join-Path;
+4. Validating paths with Test-Path
 
-Split-Path;
+Test-Path returns a Boolean and does not return the item:
 
-avoiding user-specific hardcoded paths.
+Test-Path -Path $serverPath
 
-Example:
+Validate both existence and expected item type:
 
-$reportPath = Join-Path -Path $PSScriptRoot -ChildPath "reports"
+Test-Path -Path $serverPath -PathType Leaf
+Test-Path -Path $labPath -PathType Container
 
-Path verification
+Leaf means a non-container item, normally a file.
 
-Test-Path -Path $reportPath
+Container means a directory.
 
-This chapter will distinguish:
+This prevents code from treating a directory as a file or a file as a
+directory.
 
-path exists
-path identifies a file
-path identifies a directory
-path does not exist
+5. Get-Item versus Get-ChildItem
 
-Retrieving file-system objects
+Get-Item retrieves the exact item identified by a path:
 
-Get-Item -Path $reportPath
-Get-ChildItem -Path $reportPath
+$directory = Get-Item -Path $labPath
 
-The chapter will clarify the difference between retrieving one known item and enumerating the contents of a directory.
+Get-ChildItem enumerates the items inside a directory:
 
-File and directory objects
+$items = Get-ChildItem -Path $labPath
 
-Important object types include:
+Filter at the source when the provider supports it:
+
+Get-ChildItem -Path $labPath -File
+Get-ChildItem -Path $labPath -Directory
+
+Use -Recurse only when traversal of all descendant directories is required.
+It can produce large result sets and access locations that were not obvious
+from the original path.
+
+6. FileInfo, DirectoryInfo, and PSIsContainer
+
+File-system commands return objects, not display text.
+
+Typical types:
 
 System.IO.FileInfo
 System.IO.DirectoryInfo
 
-Useful properties may include:
+Inspect the type and available members:
+
+$item.GetType().FullName
+$item | Get-Member
+
+PSIsContainer gives one property that works for both file and directory
+objects:
+
+if ($item.PSIsContainer) {
+    "Directory"
+}
+else {
+    "File"
+}
+
+High-value properties:
+
+Property
+
+Meaning
 
 Name
+
+Leaf name of the item
+
 FullName
+
+Absolute path
+
 Extension
+
+File extension, such as .txt
+
 Length
+
+File size in bytes
+
 LastWriteTime
+
+Last modification time
+
+Parent
+
+Parent directory object
+
 PSIsContainer
 
-The exact object structure will be discovered with:
+$true for a directory, $false for a file
 
-Get-Member
+Length has file-size meaning on FileInfo. Do not assume it represents the
+recursive size of a directory.
 
-Reading content
+7. Reading file content
 
-Get-Content -Path $filePath
+By default, Get-Content returns one string per line:
 
-Planned distinctions include:
+$lines = Get-Content -Path $serverPath
+$lines.Count
+$lines[0]
 
-content returned as separate lines;
+Use -Raw when the entire file must be one string:
 
-scalar versus collection behavior;
+$content = Get-Content -Path $serverPath -Raw
 
-reading the complete file as one string when required;
+Read only the beginning or end when the full file is unnecessary:
 
-reading only part of a file;
+Get-Content -Path $logPath -TotalCount 10
+Get-Content -Path $logPath -Tail 20
 
-preserving useful object output.
+Choose the form according to the next operation:
 
-Creating files and directories
+line-by-line output is useful for filtering and iteration;
 
-New-Item -Path $directoryPath -ItemType Directory
-New-Item -Path $filePath -ItemType File
+-Raw is useful for whole-document text operations;
 
-Creation will be practised only with safe paths dedicated to the exercises.
+-TotalCount and -Tail reduce unnecessary work on large files.
 
-Writing and appending content
+8. Creating directories and files safely
 
-Planned commands include:
+Build an exact path, validate it, create only when absent, and verify afterward:
 
-Set-Content
-Add-Content
-Out-File
+$outputPath = Join-Path -Path $labPath -ChildPath "output"
 
-The chapter will distinguish replacing existing content from appending new content and will explain when command output has been converted to text.
+if (-not (Test-Path -Path $outputPath -PathType Container)) {
+    New-Item -Path $outputPath -ItemType Directory | Out-Null
+}
 
-Copying, moving, and renaming
+Test-Path -Path $outputPath -PathType Container
 
-Copy-Item
-Move-Item
-Rename-Item
+Create an empty file only when an empty file is actually required:
 
-Each operation will begin with exact source and destination verification.
+$reportPath = Join-Path -Path $outputPath -ChildPath "inventory.txt"
 
-Removing items safely
+if (-not (Test-Path -Path $reportPath -PathType Leaf)) {
+    New-Item -Path $reportPath -ItemType File | Out-Null
+}
 
-Remove-Item -Path $targetPath -WhatIf
+Do not add -Force automatically. First decide whether replacing or bypassing
+an existing state is intentional.
 
-Exercises will use disposable files created specifically for the chapter. Broad paths, unresolved variables, and critical system locations will not be removal targets.
+9. Set-Content, Add-Content, and Out-File
 
-Encoding
+Set-Content writes values and replaces existing file content:
 
-The chapter will introduce the practical role of text encoding when files are consumed by:
+$reportLines = @(
+    "Server: SERVER01"
+    "Status: Running"
+)
 
-PowerShell;
+Set-Content -Path $reportPath -Value $reportLines -Encoding utf8
 
-Windows tools;
+Add-Content appends values without replacing existing content:
 
-Linux tools;
+Add-Content -Path $reportPath -Value "Source: Manual" -Encoding utf8
 
-CI/CD workflows;
+Out-File sends the formatted display representation of pipeline output to a
+file:
 
-source control;
+Get-ChildItem -Path $labPath |
+    Select-Object Name, Length |
+    Out-File -FilePath $listingPath -Encoding utf8
 
-APIs and external systems.
+Use the right tool:
 
-Encoding options will be chosen explicitly when the consumer requires a specific format.
+Set-Content for controlled text replacement;
 
-Parameter continuity
+Add-Content for append-only text such as a simple log entry;
 
-Chapter 08 concepts will be reused through parameters such as:
+Out-File for human-readable formatted output.
 
-[string]$Path
-[string]$Destination
-[switch]$Recurse
-[switch]$Force
+Formatted Out-File output is not a reliable structured-data interchange
+format. CSV and JSON are covered in later chapters.
 
-Parameters will define the public interface while file commands implement the internal behavior.
+10. Encoding
 
-No operation will use Force, recursion, or deletion unless the requirement explicitly calls for it and the target has been verified.
+Encoding defines how text characters are represented as bytes. A file can look
+correct in one tool and fail in another when producer and consumer disagree
+about encoding.
 
-Engineering relevance
+Specify encoding when interoperability matters:
 
-File automation is used for scenarios such as:
+Set-Content -Path $reportPath -Value $reportLines -Encoding utf8
+Add-Content -Path $reportPath -Value "Region: București" -Encoding utf8
+Out-File -FilePath $listingPath -InputObject $reportLines -Encoding utf8
 
-collecting Windows service and process reports;
+utf8 is a common modern choice, but the receiving application or legacy
+system determines the real requirement.
 
-inspecting application and deployment logs;
+11. Copying, moving, and renaming
 
-preparing files for CSV and JSON processing;
+Use exact source and destination paths:
 
-reading configuration used by CI/CD workflows;
+Copy-Item -Path $sourcePath -Destination $copyPath
+Move-Item -Path $copyPath -Destination $archivePath
+Rename-Item -Path $archivedFilePath -NewName "servers-archived.txt"
 
-creating timestamped operational reports;
+The operations have different meanings:
 
-locating stale or oversized files;
+Copy-Item preserves the source and creates another item;
 
-organizing generated infrastructure artifacts;
+Move-Item changes the item's location;
 
-validating that expected deployment outputs exist.
+Rename-Item changes its name in the same parent directory.
+
+After a change, verify the expected source and destination states with
+Test-Path or Get-Item.
+
+12. Removing an exact target safely
+
+Resolve and validate the exact disposable target first:
+
+$targetPath = Join-Path -Path $labPath -ChildPath "delete-me.txt"
+
+if (Test-Path -Path $targetPath -PathType Leaf) {
+    Remove-Item -Path $targetPath -WhatIf
+}
+
+Only after inspecting the -WhatIf result should the real operation be
+considered:
+
+if (Test-Path -Path $targetPath -PathType Leaf) {
+    Remove-Item -Path $targetPath
+}
+
+Test-Path -Path $targetPath
+
+Never begin with a broad directory, an unresolved variable, or recursive
+deletion.
+
+13. Cumulative function: Get-FileInventory
+
+The cumulative function accepts a directory, optionally filters by item type,
+optionally recurses, and returns predictable objects for downstream pipeline
+use.
+
+function Get-FileInventory {
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrWhiteSpace()]
+        [string]$Path,
+
+        [ValidateSet("All", "File", "Directory")]
+        [string]$ItemType = "All",
+
+        [switch]$Recurse
+    )
+
+    if (-not (Test-Path -Path $Path -PathType Container)) {
+        Write-Error "Directory not found: $Path"
+        return
+    }
+
+    $getChildItemParams = @{
+        Path = $Path
+    }
+
+    if ($Recurse) {
+        $getChildItemParams.Recurse = $true
+    }
+
+    if ($ItemType -eq "File") {
+        $getChildItemParams.File = $true
+    }
+    elseif ($ItemType -eq "Directory") {
+        $getChildItemParams.Directory = $true
+    }
+
+    $items = Get-ChildItem @getChildItemParams
+
+    foreach ($item in $items) {
+        if ($item.PSIsContainer) {
+            $itemTypeName = "Directory"
+            $sizeBytes = $null
+        }
+        else {
+            $itemTypeName = "File"
+            $sizeBytes = $item.Length
+        }
+
+        [PSCustomObject]@{
+            Name          = $item.Name
+            ItemType      = $itemTypeName
+            FullName      = $item.FullName
+            SizeBytes     = $sizeBytes
+            LastWriteTime = $item.LastWriteTime
+        }
+    }
+}
+
+Example invocations:
+
+Get-FileInventory -Path $labPath
+
+Get-FileInventory -Path $labPath -ItemType File |
+    Select-Object Name, SizeBytes
+
+Get-FileInventory -Path $labPath -ItemType Directory
+
+Get-FileInventory -Path $labPath -ItemType File -Recurse |
+    Sort-Object FullName
+
+The function reuses previous chapters:
+
+mandatory and validated parameters;
+
+a default value and ValidateSet;
+
+a switch parameter;
+
+splatting with conditionally added parameters;
+
+foreach, if, and elseif;
+
+PSCustomObject output;
+
+pipeline-friendly results.
+
+Enterprise applications
+
+These file operations support common Wintel automation tasks:
+
+validating configuration and input files before deployment;
+
+discovering logs, reports, and artifacts;
+
+reading only relevant sections of large log files;
+
+creating report and archive directories predictably;
+
+appending operational audit entries;
+
+copying artifacts into staging locations;
+
+moving completed reports into archive locations;
+
+returning normalized file inventory objects for CSV or JSON export;
+
+previewing destructive work before execution.
 
 Discovery commands
 
-When syntax is unfamiliar, use:
+Use discovery instead of guessing syntax:
 
+Get-Command -Noun Path
 Get-Command Get-ChildItem -Syntax
-Get-Help Get-ChildItem -Parameter Path
+Get-Help Test-Path -Parameter PathType
 Get-Help Get-Content -Examples
 Get-Help Remove-Item -Examples
-Get-Item -Path $filePath | Get-Member
+$item | Get-Member
 
-The goal is to interpret command syntax and object output rather than memorize every parameter.
+Use Ctrl+Space after a parameter when the shell can provide valid values.
 
-Interview focus
+Live-coding method
 
-Interview and live-coding practice may require me to:
+When asked to automate a file task:
 
-explain the difference between Get-Item and Get-ChildItem;
+State whether the input is a path string, an item object, or file content.
 
-build a path without hardcoding separators;
+Build the exact path with Join-Path.
 
-test whether a path exists;
+Validate existence and expected type with Test-Path.
 
-distinguish files from directories;
+Retrieve metadata with Get-Item or enumerate with Get-ChildItem.
 
-find files by extension or modification time;
+Read or mutate only what the requirement needs.
 
-read and append log content;
+Use -WhatIf before deletion.
 
-copy a file to a verified destination;
+Verify the resulting state.
 
-explain why a relative path resolved unexpectedly;
+Return objects when another command may consume the result.
 
-preview a removal operation with -WhatIf;
+This sequence makes reasoning visible to an interviewer and reduces accidental
+file-system changes.
 
-return structured file metadata instead of formatted text;
+Interview recap
 
-design file parameters from a written requirement.
+What is the difference between a path and a file object?
 
-Planned repository files
+A path is normally a System.String identifying a location. Get-Item resolves
+that path and returns a file-system object such as System.IO.FileInfo, which
+contains metadata and methods.
 
-README.md — concepts, reasoning, examples, and troubleshooting;
+What is the difference between Get-Item and Get-ChildItem?
 
-exercise.ps1 — practical and interview-style exercises;
+Get-Item retrieves the exact item at a path. Get-ChildItem enumerates the
+items contained by a directory and can optionally recurse into descendants.
 
-solution.ps1 — reviewed reference implementations.
+What are FileInfo and DirectoryInfo?
 
-The exercise and solution files will be created only after the concepts have been practised interactively.
+They are .NET object types representing files and directories. PowerShell adds
+provider properties such as PSIsContainer, while the underlying objects expose
+metadata such as Name, FullName, and LastWriteTime.
+
+Why use Join-Path instead of string concatenation?
+
+Join-Path expresses parent-child path intent clearly and handles the provider's
+path separator rules. It also avoids duplicated or missing separators.
+
+Why is PSScriptRoot important?
+
+$PSScriptRoot identifies the directory containing the executing script. It
+allows the script to locate adjacent resources independently of the caller's
+current working directory.
+
+What does Test-Path return?
+
+Test-Path returns a Boolean. With -PathType Leaf or Container, it validates
+both existence and the expected item category.
+
+How does Get-Content behave by default and with -Raw?
+
+By default, it returns file content line by line. With -Raw, it returns the
+entire file as one string.
+
+When would you use Set-Content, Add-Content, or Out-File?
+
+Use Set-Content to replace controlled text, Add-Content to append text, and
+Out-File to save PowerShell's formatted display output for human consumption.
+
+Why does encoding matter?
+
+Encoding controls how characters become bytes. If producer and consumer expect
+different encodings, text can be corrupted or rejected, so automation should
+specify the encoding required by the target system.
+
+How would you remove a file safely?
+
+Build an exact target path, validate it as a leaf, preview Remove-Item with
+-WhatIf, perform the real deletion only after reviewing the target, and verify
+that the path no longer exists.
+
+Why return PSCustomObject instances from an inventory function?
+
+Objects preserve named properties for filtering, sorting, selection, and later
+serialization to CSV or JSON. Formatted strings lose that structure.
+
+Must know by heart
+
+The following core should be recallable without copying:
+
+$childPath = Join-Path -Path $parentPath -ChildPath "file.txt"
+
+Test-Path -Path $childPath -PathType Leaf
+Test-Path -Path $parentPath -PathType Container
+
+$item = Get-Item -Path $childPath
+$children = Get-ChildItem -Path $parentPath
+
+$item.Name
+$item.FullName
+$item.Length
+$item.LastWriteTime
+$item.PSIsContainer
+
+$lines = Get-Content -Path $childPath
+$text = Get-Content -Path $childPath -Raw
+
+Set-Content -Path $childPath -Value $value -Encoding utf8
+Add-Content -Path $childPath -Value $value -Encoding utf8
+
+Remove-Item -Path $exactDisposablePath -WhatIf
+
+Also remember these decisions:
+
+path, item object, and file content are three different things;
+
+relative paths depend on the current location;
+
+$PSScriptRoot anchors resources to the script;
+
+Get-Item gets one item, while Get-ChildItem enumerates children;
+
+Leaf means file-like item and Container means directory;
+
+Set-Content replaces, Add-Content appends, and Out-File formats;
+
+destructive work requires an exact validated target, -WhatIf, and
+verification.
+
+Exercises
+
+Complete exercise.ps1 before consulting solution.ps1.
+
+The exercises cover:
+
+path strings, item objects, and content;
+
+absolute, relative, and script-relative paths;
+
+existence and type validation;
+
+file-system enumeration and metadata;
+
+content reading modes;
+
+safe creation and text output;
+
+encoding;
+
+copy, move, rename, and verified removal;
+
+the cumulative Get-FileInventory function;
+
+interview and live-coding reasoning.
 
 Completion criteria
 
-This chapter will be complete when I can:
+The chapter is complete when you can:
 
-translate a file-management requirement into safe PowerShell steps;
+explain the difference between a path, an item object, and file content;
 
-build and verify paths independently;
+choose between Get-Item, Get-ChildItem, and Get-Content;
 
-retrieve and inspect file-system objects;
+build stable paths with Join-Path and $PSScriptRoot;
 
-read and write content intentionally;
+validate both existence and item type;
 
-distinguish overwrite from append behavior;
+use the important properties of file and directory objects;
 
-perform copy, move, rename, and removal operations safely;
+write and append text intentionally with an explicit encoding;
 
-explain how file output will be consumed by later automation;
+copy, move, and rename exact targets;
 
-verify the final state instead of assuming an operation succeeded.
+preview and verify file deletion;
 
+implement and explain Get-FileInventory without cargo-cult code.
+
+Key takeaway
+
+Reliable file automation is not a collection of isolated commands. It is a
+controlled workflow that distinguishes identifiers, objects, and content;
+validates exact targets; performs the smallest required change; and verifies
+the result.
