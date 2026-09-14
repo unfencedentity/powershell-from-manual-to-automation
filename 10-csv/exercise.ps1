@@ -1,46 +1,57 @@
 # Chapter 10 - CSV
-# Exercise: Windows Server Inventory and Validation
-# Status: In progress
+# Cumulative Exercise: Windows Server Inventory and Validation
 
-# Part 1 - Build an in-memory server inventory
+<#
+Scenario:
 
-# Create three PSCustomObject instances with these properties:
-# ComputerName
-# Environment
-# Role
-# ExpectedService
-# Owner
+You receive a CSV inventory containing Windows servers.
 
-# Use the following server data:
-#
-# SRV-APP-01, Production, Web, W3SVC, PlatformTeam
-# SRV-DB-01, Production, Database, MSSQLSERVER, DataTeam
-# SRV-TEST-01, Test, Web, W3SVC, QA-Team
+Each row must contain these columns:
 
-# Store the three server objects in an array named $servers.
+- ComputerName
+- Environment
+- Role
+- ExpectedService
+- Owner
 
-# Verify:
-# - the number of objects in the array;
-# - the type of the first element.
+Requirements:
 
+1. Create a dedicated lab directory inside the current user's temporary directory.
+2. Build all paths with Join-Path.
+3. Create at least three fictional server PSCustomObject instances.
+4. Store the server objects in an array.
+5. Export the inventory to server-inventory.csv:
+   - use UTF-8 encoding;
+   - do not include type information;
+   - do not use Append.
+6. Verify that the CSV exists as a file.
+7. Inspect the physical CSV content with Get-Content.
+8. Create a function named Get-ServerInventory.
+9. The function must:
+   - accept a mandatory validated Path parameter;
+   - verify that Path points to an existing file;
+   - import the CSV;
+   - verify that the inventory contains data rows;
+   - validate all required columns;
+   - report missing columns;
+   - stop when validation fails;
+   - transform every imported row into a new PSCustomObject;
+   - create an IsProduction Boolean property;
+   - return objects through the pipeline.
+10. Call Get-ServerInventory with the inventory path.
+11. Sort the returned objects by ComputerName.
+12. Export the validated inventory to server-inventory-report.csv.
+13. Verify the exact report path.
+14. Import and inspect the final report.
 
-# Part 2 - Prepare a safe temporary CSV lab
+Expected result:
 
-# Build an exact temporary directory path using:
-# - $env:TEMP as the parent path;
-# - powershell-csv-lab as the child path;
-# - Join-Path to construct the path.
+- Three server objects are imported.
+- The required-column validation succeeds.
+- Production servers have IsProduction set to True.
+- Test servers have IsProduction set to False.
+- The final report exists inside the dedicated temporary lab.
+- Running the script repeatedly does not append duplicate rows.
+#>
 
-# Verify whether the path already exists as a directory.
-
-
-# Future chapter work
-
-# TODO: Create the temporary directory safely.
-# TODO: Build an exact CSV file path.
-# TODO: Export the inventory with Export-Csv.
-# TODO: Inspect the physical CSV content.
-# TODO: Import the inventory with Import-Csv.
-# TODO: Validate required columns.
-# TODO: Transform imported strings into typed output objects.
-# TODO: Export a structured validation report.
+# Write your solution below.
